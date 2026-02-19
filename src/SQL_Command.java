@@ -53,8 +53,7 @@ public class SQL_Command {
                 if (rowsAffected > 0) {
                     conn.commit();
                     System.out.println("Checkout successful!");
-                }
-                else {
+                } else {
                     System.out.println("Error: No copies available for this book.");
                     conn.rollback();
                 }
@@ -170,7 +169,7 @@ public class SQL_Command {
         }
     }
 
-    public static void AllBooks(){
+    public static void AllBooks() {
         String command = "SELECT title, author, publish_year, copies FROM Books";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
              PreparedStatement pstmt = conn.prepareStatement(command);
@@ -181,13 +180,14 @@ public class SQL_Command {
                 String author = rs.getString("author");
                 int year = rs.getInt("publish_year");
                 int copies = rs.getInt("copies");
-                System.out.println("Title: "+ title+ " | Author: "+ author+ " | Publish Year: "+year+" | Copies: "+copies);
+                System.out.println("Title: " + title + " | Author: " + author + " | Publish Year: " + year + " | Copies: " + copies);
             }
 
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
+
     public static void AllPeople() {
         String command = "SELECT first_name, last_name FROM Person";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
@@ -197,9 +197,53 @@ public class SQL_Command {
             while (rs.next()) {
                 String First = rs.getString("first_name");
                 String Last = rs.getString("last_name");
-                System.out.println("First Name: "+First+ " | Last Name: "+Last);
+                System.out.println("First Name: " + First + " | Last Name: " + Last);
             }
 
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void delete_person(String fname, String lname) {
+        String delperson = "DELETE FROM Person WHERE first_name = ? AND last_name = ?";
+        String delreturn = "DELETE FROM BookHistory WHERE person_id = ?";
+        int IDperson = findperson(fname,lname);
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(delperson);
+             PreparedStatement pstmt2 = conn.prepareStatement(delreturn)) {
+            conn.setAutoCommit(false);
+            pstmt.setString(1, fname);
+            pstmt.setString(2, lname);
+            pstmt2.setInt(1, IDperson);
+            pstmt2.executeUpdate();
+            pstmt.executeUpdate();
+
+            conn.commit();
+            System.out.println("Person deleted successfully.\n");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void delete_book(String title) {
+        String delbook = "DELETE FROM Books WHERE title = ?";
+        String delreturn = "DELETE FROM BookHistory WHERE book_id = ?";
+
+        int IDbook = findbook(title);
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(delbook);
+             PreparedStatement pstmt2 = conn.prepareStatement(delreturn)) {
+
+            conn.setAutoCommit(false);
+            pstmt.setString(1, title);
+            pstmt2.setInt(1, IDbook);
+
+            pstmt2.executeUpdate();
+            pstmt.executeUpdate();
+
+            conn.commit();
+            System.out.println("Book deleted successfully.\n");
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
